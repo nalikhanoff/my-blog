@@ -11,6 +11,7 @@ export type UserDocument = User & Document;
       ['_id', 'password'].forEach((k) => delete ret[k]);
     },
     versionKey: false,
+    virtuals: true,
   },
 })
 export class User {
@@ -22,11 +23,17 @@ export class User {
 }
 
 const userSchema = SchemaFactory.createForClass(User);
+
+userSchema.virtual('id').get(function (this: UserDocument) {
+  return this._id.toHexString();
+});
+
 userSchema.pre('save', async function (done) {
   if (this.isModified('password')) {
     const hashedPassword = bcrypt.hashSync(this.get('password'), 10);
     this.set('password', hashedPassword);
   }
+  done();
 });
 
-export {userSchema};
+export { userSchema };
